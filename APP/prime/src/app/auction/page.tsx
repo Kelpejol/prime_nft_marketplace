@@ -21,7 +21,6 @@ export default function Page() {
               bottomImage={img1}
             />
             <AuctionDetails />
-           {/* <RelatedItems /> */}
           </div> 
           <div className="w-full lg:w-1/2 flex flex-col gap-4 overflow-y-auto">
         

@@ -1,115 +1,142 @@
 'use client';
 
-import { useEffect } from 'react';
-import { fetchNFT, listings } from "../contracts/getPlatformInfo";
-import { anvil } from "thirdweb/chains";
-import { getContract } from "thirdweb";
+import { useState, useCallback, useEffect } from 'react';
+import { fetchNFT, LimitedListings, listings } from "../contracts/getPlatformInfo";
+import { getContract, toEther } from "thirdweb";
 import { client } from "../client";
 import Card from "../components/card/Card";
 import Container from '../components/Container';
 import CardContainer from '../components/card/CardContainer';
-import useSWR from 'swr';
-import useCreateListingModal from '@/hooks/useCreateListingModal'; 
+import { useInfiniteScroll } from '@/app/hooks/useInfiniteScroll';
+import useCreateListingModal from '@/app/hooks/useCreateListingModal';
 import EmptyState from '../components/EmptyState';
 import Error from '../components/Error';
-import SkeletonCardContainer from "../components/card/CardSkeleton"
-import { fetchTokenInfo } from '@/hooks/useCurrencyInfo';
+import SkeletonCardContainer from "../components/card/CardSkeleton";
+import { fetchTokenInfo } from '@/app/hooks/useCurrencyInfo';
+import { anvil } from 'thirdweb/chains';
+import useListingsStore from "@/app/hooks/useListingsStore"
+import { ipfsToHttp } from '../utils/IpfsToHttp';
+
 
 export function getContractAddress(address: string) {
   return getContract({
     address,
     chain: anvil,
-    client
+    client,
   });
 }
 
-export const ipfsToHttp = (ipfsUri: string) => {
-  const gateway = 'https://ipfs.io/ipfs/';
-  return ipfsUri.replace('ipfs://', gateway);
-};
-
 export default function Listings() {
   const createListing = useCreateListingModal();
+  const PAGE_SIZE = 8;
+  const [initialLoading, setInitialLoading] = useState(true);
+  const setMutate = useListingsStore(state => state.setMutate);
 
-  async function fetchListings() {
+
+  const fetchListingsPage = useCallback(async (key: string) => {
     try {
-      const fetchedListings = await listings();
+      const pageIndex = parseInt(key.split('-page-')[1]?.split('-')[0], 10) || 0;
+      const start = pageIndex * PAGE_SIZE;
+      
+      // Only fetch the listings for this specific page
+      const pageListings = await LimitedListings(start, PAGE_SIZE)
 
-      if (!fetchedListings || fetchedListings.length === 0) {
-        return [];
+      if (!Array.isArray(pageListings)) {
+        return { items: [], totalCount: 0 };
       }
 
-      const nftCards = fetchedListings.map(async (listing, index) => {
-        try {
-          const contract = getContractAddress(listing.assetContract);
-          const nftDetails = await fetchNFT(contract, listing);
-           const currency = await fetchTokenInfo(listing.currency);
-          
-          if (!nftDetails?.metadata) {
-            console.error(`Missing metadata for listing ${index}`);
-            return null;
-          }
+      const nftCards = await Promise.all(pageListings.map(async (listing) => {
+          try {
+            const contract = getContractAddress(listing.assetContract);
+            const [nftDetails, currency] = await Promise.all([
+              fetchNFT(contract, listing),
+              fetchTokenInfo(listing.currency),
+            ]);
 
-          return (
-           
+            if (!nftDetails?.metadata) {
+              console.error(`Missing metadata for listing ${listing.listingId}`);
+              return null;
+            }
+            // const formattedPrice = Number(listing.pricePerToken) / 10 ** 18;
+            const price = toEther(listing.pricePerToken)
+            return (
               <Card
-                key={`${listing.listingId}-${index}`}
-                src={ipfsToHttp(nftDetails.metadata.image!) || ''}
+                key={`${listing.listingId}-${listing.tokenId}`}
+                src={ipfsToHttp(nftDetails.metadata.image) || ''}
                 name={nftDetails.metadata.name || 'Unnamed NFT'}
                 tokenId={`${listing.tokenId}`}
-                price={`${listing.pricePerToken}`}
+                price={`${price}`}
                 listingId={listing.listingId}
-                symbol={currency.symbol}
+                symbol={currency?.symbol || ''}
+                status={listing.status}
               />
-            
-          );
-        } catch (error) {
-          console.error(`Error processing listing ${index}:`, error);
-          return null;
-        }
-      })
+            );
+          } catch (error) {
+            console.error(`Error processing listing ${listing.listingId}:`, error);
+            return null;
+          }
+        })
+  )
 
-      const resolvedCards = await Promise.allSettled(nftCards);
-      return resolvedCards
-        .filter(result => result.status === 'fulfilled' && result.value !== null)
-        .map(result => (result as PromiseFulfilledResult<any>).value).toReversed()
+      const validCards = nftCards.filter(Boolean);
+      return {
+        items: validCards,
+        totalCount: pageListings.length 
+      };
     } catch (error) {
-      console.error('Critical error in Listings component:', error);
-      return [];
-    } 
-  }
+      console.error('Error fetching listings page:', error);
+      throw error;
+    }
+  }, []);
 
-  const { data: fetchedListings, error, isLoading, mutate } = useSWR('listings', fetchListings, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
+  const { ref, pages, isLoading, error, setTotalCount, mutate } = useInfiniteScroll({
+    fetchData: fetchListingsPage,
+    initialTotalCount: null,
+    revalidateKey: 'listings',
   });
 
   useEffect(() => {
-    createListing.setMutateListings(mutate);
-  }, [mutate]);
+    setMutate(mutate);
+  }, [mutate]); 
 
-  if(error) {
-    return(
-    <Error error={error}/>
-    )
-    
+  
+
+  useEffect(() => {
+    const initializeTotalCount = async () => {
+      try {
+        const totalListing = await listings(); // New method needed
+        setTotalCount(totalListing.length);
+      } catch (error) {
+        console.error('Error fetching initial total count:', error);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+    initializeTotalCount();
+  }, [setTotalCount]);
+
+  const allListings = pages?.flatMap((page) => page?.items || []);
+
+  if (error) {
+    return <Error error={error} />;
   }
-  if(isLoading) {
-    return(
+
+  if (initialLoading || !pages) {
+    return (
       <Container>
-    <SkeletonCardContainer/>
-    </Container>
-    )
+        <SkeletonCardContainer />
+      </Container>
+    );
   }
 
-  if (fetchedListings && fetchedListings.length == 0) {
+  if (!initialLoading && allListings?.length === 0) {
     return (
       <EmptyState
-        title='Oops!'
+        title="Oops!"
         subtitle="No listing at the moment. Try creating one"
         showButton={true}
         onClick={createListing.onOpen}
-        label='Create Listing'
+        label="Create Listing"
       />
     );
   }
@@ -117,8 +144,11 @@ export default function Listings() {
   return (
     <Container>
       <CardContainer>
-        {fetchedListings}
+        {allListings}
       </CardContainer>
+      <div ref={ref} className="h-full mb-auto w-full">
+        {isLoading && <SkeletonCardContainer />}
+      </div>
     </Container>
   );
 }

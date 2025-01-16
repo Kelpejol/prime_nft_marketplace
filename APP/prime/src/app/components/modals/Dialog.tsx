@@ -1,12 +1,12 @@
 "use client"
 
 import {  useEffect, useState } from 'react';
-import useBuyModal from "@/hooks/useBuyModal";
+import useBuyModal from "@/app/hooks/useBuyModal";
 import { useActiveAccount } from "thirdweb/react";
 import { buyFromListing } from "@/app/contracts/directListing";
 import toast from "react-hot-toast";
 import { showToast } from "../WalletToast";
-import useDialog from '@/hooks/useDialog';
+import useDialog from '@/app/hooks/useDialog';
 import Button from '../Button';
 
 

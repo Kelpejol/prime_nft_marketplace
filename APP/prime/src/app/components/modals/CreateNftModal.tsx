@@ -2,7 +2,7 @@
 
 import Modal from "./Modal";
 import { useCallback, useMemo, useState } from "react";
-import useCreateNftModal from "@/hooks/useCreateNftModal";
+import useCreateNftModal from "@/app/hooks/useCreateNftModal";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import Heading from "../Heading";
 import ToggleSwitch from "../ToggleSwitch";
@@ -12,7 +12,7 @@ import createNFT from "@/app/contracts/createNFT";
 import { useActiveAccount } from "thirdweb/react";
 import  { showToast } from "../WalletToast";
 import toast from "react-hot-toast";
-import useCreateListingModal from "@/hooks/useCreateListingModal";
+import useCreateListingModal from "@/app/hooks/useCreateListingModal";
  
 
 enum STEPS {
@@ -280,32 +280,7 @@ const increment = () => {
     bodyContent = (
       <div className="flex flex-col gap-4 md:gap-7">
        <div className="flex flex-col gap-4">
-        {/* <div className="md:flex md:justify-between space-y-4 md:space-y-0">
-        <div className="md:w-[47%] w-full">
-        <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="block sm:text-xs text-[10px] font-black text-black">Name</label>
-          <input type="text" id="name"  {...register("name", {
-          required: true,
-          maxLength: 25
-        })} className={`${errors.name ? "border-red-500" : "border-gray-300"} border-2  rounded-lg p-2 w-full placeholder:text-[12px]  md:placeholder:text-[13px]`} placeholder="Enter the name of your NFT" />
- 
-
-       </div>
-       </div>
-           <div className="md:w-[47%] w-full">
-
-        <div className="flex flex-col gap-2">
-          <label htmlFor="symbol" className="block sm:text-xs text-[10px] font-black text-black">Symbol</label>
-          <input type="text" id="symbol"  {...register("symbol", {
-          required: true,
-          maxLength: 5
-        })} className={`${errors.symbol ? "border-red-500" : "border-gray-300"} border-2 rounded-lg p-2 w-full placeholder:text-[12px]  md:placeholder:text-[13px]`} placeholder="MUN" />
- 
-
-       </div>
         
-          </div>
-          </div> */}
 
            <div className="flex gap-4">
                   <div className="flex-1">

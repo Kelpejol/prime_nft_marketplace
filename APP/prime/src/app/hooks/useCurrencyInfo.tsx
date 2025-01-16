@@ -1,9 +1,14 @@
 import { useCallback, useMemo } from 'react';
 import useSWR from 'swr';
+import {NATIVE_TOKEN} from "../contracts/constant"
+import { getApprovedCurrency } from '../contracts/getPlatformInfo';
 
 
 
 export const fetchTokenInfo = async (contractAddress: string) => {
+  if(contractAddress === NATIVE_TOKEN) {
+    contractAddress = "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0"
+  }
   const response = await fetch(`https://api.coingecko.com/api/v3/coins/ethereum/contract/${contractAddress}`);
   
   if (!response.ok) {
@@ -14,26 +19,28 @@ export const fetchTokenInfo = async (contractAddress: string) => {
 };
 
 export const useCurrencyInfo = () => {
-  const tokenAddresses = useMemo(() => [
-    "0xdac17f958d2ee523a2206206994597c13d831ec7", // USDT
-    "0x6b175474e89094c44da98b954eedeac495271d0f"  // DAI
-  ], []);
+  const tokenAddresses = useMemo(async () => {
+    const result = await getApprovedCurrency();
+    return result;
+  }, []);
 
   const fetchCurrency = useCallback(async () => {
-   const currency = await Promise.all(
-      tokenAddresses
+    const addresses = await tokenAddresses;
+    const currency = await Promise.all(
+      addresses
         .filter(addr => addr !== '0x0000000000000000000000000000000000000000')
         .map(fetchTokenInfo)
-    )
+    );
     return currency;
-  }, [tokenAddresses]) 
+  }, [tokenAddresses]);
 
   const { 
-    data: tokenInfos,  error, isLoading } = useSWR("currency", fetchCurrency, {
+    data: tokenInfos, error, isLoading 
+  } = useSWR("currency", fetchCurrency, {
     revalidateOnFocus: false,
-  revalidateOnReconnect: true,
-  revalidateIfStale: false,
-  revalidateOnMount: true
+    revalidateOnReconnect: true,
+    revalidateIfStale: false,
+    revalidateOnMount: true
   });
 
   const currency = useMemo(() => {

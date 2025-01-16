@@ -2,19 +2,18 @@
 
 import Modal from "./Modal";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import useCreateListingModal from "@/hooks/useCreateListingModal";
+import useCreateListingModal from "@/app/hooks/useCreateListingModal";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import Heading from "../Heading";
 import ToggleSwitch from "../ToggleSwitch";
-
 import { useActiveAccount } from "thirdweb/react";
 import CurrencySelect, { CurrencySelectValue } from "../CurrencySelect";
 import { createListing } from "@/app/contracts/directListing";
 import toast from "react-hot-toast";
 import { showToast } from "../WalletToast";
 import {getListingType} from "../../contracts/getPlatformInfo"
-// import { useCurrencyInfo } from "@/hooks/useCurrencyInfo";
- import dayjs from 'dayjs';
+import useListingsStore from "@/app/hooks/useListingsStore"
+import { TimeHelper } from "@/app/utils/timeHelper";
 
 
 enum STEPS {
@@ -45,11 +44,8 @@ export default function CreateListingModal() {
   const [basicData, setBasicData] = useState<LISTING_TYPE_DATA>({})
   const [advancedData, setAdvancedData] = useState<LISTING_TYPE_DATA>({})
   const [proData, setProData] = useState<LISTING_TYPE_DATA>({})
-
-
-
-    
-
+  const listingsStore = useListingsStore();
+  
   
 
 
@@ -87,7 +83,7 @@ const {
       assetContract: data.assetContract,
       tokenId: BigInt(data.tokenId), 
       currency: data.currency,
-      pricePerToken: BigInt(data.tokenPrice), 
+      pricePerToken: data.tokenPrice, 
       listingType: data.listingType, 
       reserved: data.isReserved
     };
@@ -105,8 +101,8 @@ const {
         setChecked(false);
         setSelectedValue(undefined);
         setStep(STEPS.TYPE);
-        createListingModal.mutateListing();
-    } else {
+        listingsStore.refreshListings()
+ } else {
       toast.error(data.message);
     }
     setIsLoading(false);
@@ -127,18 +123,6 @@ const listingTypeLabel = useCallback(() => {
   }
 }, [selectedType])
 
-const TimeHelper = {
-  secondsToMonths: (seconds: any) => {
-    // Convert seconds to days first
-    const days = seconds / (24 * 60 * 60);
-    // Convert days to months (using 30.44 days per month average)
-    return Math.round(days / 30.44);
-  },
-
-  formatDuration: (months: any) => {
-    return months === 1 ? '1 month' : `${months} months`;
-  }
-};
 
 
 useEffect(() => {

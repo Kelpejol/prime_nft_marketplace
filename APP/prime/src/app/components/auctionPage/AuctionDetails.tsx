@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
+
+
 export default function AuctionDetails() {
   const [isExpanded, setIsExpanded] = useState(false)
 

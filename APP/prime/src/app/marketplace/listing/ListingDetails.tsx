@@ -1,26 +1,23 @@
 "use client"
 
 import Button from "@/app/components/Button";
-import { ipfsToHttp } from "@/app/marketplace/Listings";
 import {PuffLoader} from 'react-spinners'
 import Image from "next/image";
 import {useCallback, useMemo} from "react"
-import { getContract, NFT } from "thirdweb";
-import useDialog from "@/hooks/useDialog";
-import useBuyModal from "@/hooks/useBuyModal";
+import { getContract, NFT, toEther } from "thirdweb";
+import useDialog from "@/app/hooks/useDialog";
+import useBuyModal from "@/app/hooks/useBuyModal";
 import { getListing } from "@/app/contracts/directListing";
 import { anvil } from "thirdweb/chains";
 import { fetchNFT } from "@/app/contracts/getPlatformInfo";
 import { client } from "@/app/client";
 import useSWR from "swr";
-import useOfferModal from "@/hooks/useOfferModal";
-import useCreateListingModal from "@/hooks/useCreateListingModal";
-import img1 from "@public/img1.jpeg"
-import EmptyState from "@/app/components/EmptyState";
+import useOfferModal from "@/app/hooks/useOfferModal";
 import Error from "@/app/components/Error";
 import {useWindowWidth} from '@react-hook/window-size'
-import { fetchTokenInfo } from "@/hooks/useCurrencyInfo";
+import { fetchTokenInfo } from "@/app/hooks/useCurrencyInfo";
 import SkeletonListingDetails from "@/app/components/card/ListingSkeletonCard"
+import { ipfsToHttp } from "@/app/utils/IpfsToHttp";
 
 
 
@@ -37,7 +34,6 @@ export default function ListingDetails({listingId}: ListingDetailsProps) {
   const dialog = useDialog();
   const buyModal = useBuyModal();
   const offer = useOfferModal();
-  const createListing = useCreateListingModal();
 
   const width = useWindowWidth();
   
@@ -143,7 +139,7 @@ export default function ListingDetails({listingId}: ListingDetailsProps) {
       buyModal.setListingId(data.listingId);
       dialog.onOpen();
       buyModal.setMutateListings(mutate) 
-    }
+    } 
   }, [data, buyModal, dialog, mutate]);
 
    const imageUrl = useMemo(() => {
@@ -197,11 +193,9 @@ export default function ListingDetails({listingId}: ListingDetailsProps) {
                 className=""
                 src={
                imageUrl
-                //  img1
                 }
                 alt={
                   data.nft?.metadata.name!
-                  // "img1"
                 }
                 quality={90}
                 fill
@@ -225,24 +219,19 @@ export default function ListingDetails({listingId}: ListingDetailsProps) {
   )} 
   <div className="text-gray-300 md:text-sm text-[9px] lg:text-lg">
     {listingStatus} 
-    {/* Live */}
     </div>
 </div>
             <div className="capitalize text-white text-[10px] md:text-base lg:text-2xl truncate">
-              {/* AZUKI #1 */}
                {data.nft?.metadata.name}{" "}#{data.tokenId.toString()}
               </div>
             <div className="text-gray-300 md:text-sm text-[9px] lg:text-lg">Listed by: {"  "}
-              <span className="text-white text-[7px] md:text-xs break-words">
-                
-                  {/* 0x7A3d81bD8F80b61cF47927498Ee34CeCf81D944f */}
+              <span className="text-white text-[7px] md:text-xs break-words">                
                 {data.listingCreator} 
                 </span>
               </div>
               <div className="text-gray-300 md:text-sm text-[9px] lg:text-lg ">Price: {"  "}
                 <span className="text-white text-[7px] md:text-xs ">
-                  {data.pricePerToken.toString()}{" "}{data.currencySymbol}
-                    {/* 10 MATIC */}
+                  {toEther(data.pricePerToken)}{" "}{data.currencySymbol}
                     </span>
                 </div>    
                  {data.reserved && ( 

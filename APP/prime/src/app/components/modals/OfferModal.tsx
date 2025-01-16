@@ -1,22 +1,18 @@
 "use client";
 
 import Modal from "./Modal";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useState } from "react";
 import { FieldValues, useForm } from "react-hook-form";
 import Heading from "../Heading";
 import { useActiveAccount } from "thirdweb/react";
 import toast from "react-hot-toast";
 import { showToast } from "../WalletToast";
-import useOfferModal from "@/hooks/useOfferModal";
+import useOfferModal from "@/app/hooks/useOfferModal";
 import SwitchablePicker, { PickerType } from "../SwitchablePicker";
-import dayjs from 'dayjs';
 import { makeOffer } from "@/app/contracts/offers";
+import { formattedTimeStamp } from "@/app/utils/timeHelper";
 
 
-
-interface DateType {
-  $d: Date;
-}
 
 
 export default function OfferModal() {
@@ -50,18 +46,6 @@ export default function OfferModal() {
 
   
 
-const formattedTimeStamp = (time: DateType, date: DateType) => {
-  const year = dayjs(date?.$d).year();
-  const month = dayjs(date?.$d).month();
-  const day = dayjs(date?.$d).date();
-  const hour = dayjs(time?.$d).hour();
-   const minute = dayjs(time?.$d).minute();
-   const seconds = dayjs(time?.$d).second();
-  const formattedTime = `${year}-${month + 1}-${day} ${hour}:${minute}:${seconds}`;  
-  const timeStamp = dayjs(formattedTime).unix();
-  return timeStamp;
-  
-};
   const onSubmit = (data: FieldValues) => {
    const timeStamp = formattedTimeStamp(data.offerDuration.time, data.offerDuration.date);
    if(timeStamp < Math.floor(Date.now() / 1000)) {

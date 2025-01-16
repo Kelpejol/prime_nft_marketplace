@@ -1,6 +1,6 @@
 "use client"
 import UserMenu from "./UserMenu";
-import  useWindowScroll  from "../../../hooks/useWindowScroll";
+import  useWindowScroll  from "@/app/hooks/useWindowScroll";
 
 export default function NavBar() {
   const  height  = useWindowScroll();

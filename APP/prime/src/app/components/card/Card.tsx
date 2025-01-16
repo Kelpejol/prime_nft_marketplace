@@ -1,14 +1,11 @@
 'use client'
 import Image from 'next/image';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Button from '../Button';
-import useDialog from '@/hooks/useDialog';
+import useDialog from '@/app/hooks/useDialog';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import useOfferModal from '@/hooks/useOfferModal';
-import useBuyModal from '@/hooks/useBuyModal';
-import { fetchTokenInfo } from '@/hooks/useCurrencyInfo';
-import useSWR from 'swr';
+import useOfferModal from '@/app/hooks/useOfferModal';
+import useBuyModal from '@/app/hooks/useBuyModal';
 
 
  interface CardProps{
@@ -17,10 +14,11 @@ import useSWR from 'swr';
   tokenId: string,
   price: string,
   listingId: bigint,
-  symbol: string
+  symbol: string,
+  status: number
  }
 
-const Card = ({src, name, tokenId, price, listingId, symbol}: CardProps) => {
+const Card = ({src, name, tokenId, price, listingId, symbol, status}: CardProps) => {
   const [rotation, setRotation] = useState(132);
     const dialog = useDialog();
     const router = useRouter();
@@ -36,6 +34,31 @@ const Card = ({src, name, tokenId, price, listingId, symbol}: CardProps) => {
    offer.setListingId(listingId);
    offer.onOpen();
   }, [listingId, offer]) 
+
+  const listingStatus=useMemo(() => {
+        
+        if(status == 1){
+          return {status:"Live", color: "text-green-500"};
+        }
+        else if(status == 2){
+          return {
+            status: "Sold",
+            color: "text-red-500"
+          }
+        }
+        else if(status == 3){
+          return {
+            status: "Cancelled",
+            color: "text-red-500"
+          }
+        }
+        else {
+          return {
+            status: "Inactive",
+            color: "text-orange-500"
+          }
+        }
+  }, [status])
 
  
 
@@ -98,7 +121,10 @@ const Card = ({src, name, tokenId, price, listingId, symbol}: CardProps) => {
                 <div className="text-[rgb(88,199,250)] transition-colors duration-1000 capitalize md:text-sm text-xs truncate">{name}</div>
                 <div className="text-[rgb(88,199,250)] transition-colors duration-1000 md:text-sm text-xs">#{tokenId}</div>
               </div>
-              <div className="text-[rgb(88,199,250)] transition-colors duration-1000 md:text-sm text-xs truncate">{price}<span className='space-x-1'>{symbol}</span></div>
+               <div className="flex justify-between items-center w-full">
+              <div className="text-[rgb(88,199,250)] transition-colors duration-1000 md:text-sm text-xs truncate capitalize">{price}<span>{" "}{symbol}</span></div>
+              <div className={`md:text-sm text-xs ${listingStatus.color}`}>{listingStatus.status}</div>
+              </div>
             </div>
           </div>
         </div>

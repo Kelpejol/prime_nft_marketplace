@@ -2,18 +2,15 @@
 
 import Modal from "./Modal";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import useCreateAuctionModal from "@/hooks/useCreateAuctionModal";
+import useCreateAuctionModal from "@/app/hooks/useCreateAuctionModal";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import Heading from "../Heading";
 import ToggleSwitch from "../ToggleSwitch";
 
 import { useActiveAccount } from "thirdweb/react";
 import CurrencySelect, { CurrencySelectValue } from "../CurrencySelect";
-import { createListing } from "@/app/contracts/directListing";
 import toast from "react-hot-toast";
 import { showToast } from "../WalletToast";
 import {getListingType} from "../../contracts/getPlatformInfo"
- import dayjs from 'dayjs';
 import { createAuction } from "@/app/contracts/auction";
 
 
@@ -42,9 +39,7 @@ export default function CreateAuctionModal() {
    const [isLoading, setIsLoading] = useState(false);
   const createAuctionModal = useCreateAuctionModal();
   const account = useActiveAccount();
-  const [basicData, setBasicData] = useState<LISTING_TYPE_DATA>({})
-  const [advancedData, setAdvancedData] = useState<LISTING_TYPE_DATA>({})
-  const [proData, setProData] = useState<LISTING_TYPE_DATA>({})
+ 
 
 
 
@@ -117,54 +112,6 @@ const {
   }
  
 };
-
-
-
-const TimeHelper = {
-  secondsToMonths: (seconds: any) => {
-    // Convert seconds to days first
-    const days = seconds / (24 * 60 * 60);
-    // Convert days to months (using 30.44 days per month average)
-    return Math.round(days / 30.44);
-  },
-
-  formatDuration: (months: any) => {
-    return months === 1 ? '1 month' : `${months} months`;
-  }
-};
-
-
-useEffect(() => {
-  const fetchListingData = async() => {
-    try{
-const [basicResult, advancedResult, proResult] = await Promise.all([
-   getListingType(LISTING_TYPE.BASIC),
-   getListingType(LISTING_TYPE.ADVANCED),
-   getListingType(LISTING_TYPE.PRO)
-
-]);
- setBasicData({
-        duration: TimeHelper.secondsToMonths(basicResult?.[0]),
-        price: basicResult?.[1].toString()
-      });
-      
-      setAdvancedData({
-        duration: TimeHelper.secondsToMonths(advancedResult?.[0]),
-        price: advancedResult?.[1].toString()
-      });
-      
-      setProData({
-        duration: TimeHelper.secondsToMonths(proResult?.[0]),
-        price: proResult?.[1].toString()
-      });
-
-    } catch (error) {
-      console.error('Error fetching listing data:', error)
-    }
-  }
-
-  fetchListingData();
-}, [])
 
 
 

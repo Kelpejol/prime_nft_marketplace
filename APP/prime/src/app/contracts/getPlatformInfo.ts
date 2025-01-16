@@ -53,6 +53,27 @@ export const fetchListingPlanInfo = async (
   }
 };
 
+export const getApprovedCurrency = async () => {
+  try {
+    
+    const result = await readContract({
+      contract,
+      method: "getApprovedCurrency",
+    });
+
+
+     // Add type checking and null/empty array handling
+    
+    return result;
+
+  } catch (error) {
+    
+  console.log("error getting approved currency", error)
+    // Return an empty array instead of throwing
+    return [];
+  }
+}
+
 export const getListingType = async(params: number) => {
   try {
     const result = await readContract({
@@ -116,3 +137,21 @@ export async function fetchNFT(contract: Readonly<ContractOptions<[]>>, listing:
     return null;
   }
 }
+
+
+
+export const LimitedListings = async (start = 0, limit: null | number = null) => {
+  try {
+    const allListings = await listings();
+    const reversedListings = [...allListings].reverse();
+    
+    if (limit !== null) {
+      return reversedListings.slice(start, start + limit);
+    }
+    
+    return reversedListings;
+  } catch (error) {
+    console.error('Error fetching listings:', error);
+    throw error;
+  }
+};
