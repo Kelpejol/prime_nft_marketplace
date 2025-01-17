@@ -230,7 +230,7 @@ export default function ListingDetails({listingId}: ListingDetailsProps) {
                 </span>
               </div>
               <div className="text-gray-300 md:text-sm text-[9px] lg:text-lg ">Price: {"  "}
-                <span className="text-white text-[7px] md:text-xs ">
+                <span className="text-white text-[7px] md:text-xs capitalize">
                   {toEther(data.pricePerToken)}{" "}{data.currencySymbol}
                     </span>
                 </div>    

@@ -1,25 +1,18 @@
 'use client'
-import { ContractOptions, getContract, sendTransaction } from "thirdweb";
+import { ContractOptions, sendTransaction } from "thirdweb";
 import { deployERC1155Contract, deployERC721Contract } from "thirdweb/deploys";
 import { client } from "../client";
 import {Account} from "thirdweb/wallets"
-import { anvil } from "thirdweb/chains";
 import {FieldValues} from "react-hook-form";
 import { NFT_TYPE } from "../components/modals/CreateNftModal";
+import { nftContract } from "./getContract";
+import { anvil } from "thirdweb/chains";
 
 
 
 
 
- function nftContract(contractAddress: string) {
-const contract =  getContract({
- client,
- chain: anvil,
- address: contractAddress,
-}); 
-
-return contract;
-} 
+ 
 
 
 

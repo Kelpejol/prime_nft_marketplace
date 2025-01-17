@@ -61,7 +61,7 @@ const {
       assetContract: "",
       tokenId: null,
       tokenPrice: null,
-      currency: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+      currency: "",
       isReserved: checked
     },
      mode: 'onSubmit', // Validate on form submission

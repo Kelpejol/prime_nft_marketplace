@@ -1,18 +1,15 @@
 
 import {
   sendTransaction, 
-  prepareContractCall, 
-  getContract,  
+  prepareContractCall,   
   readContract
 } from "thirdweb";
 
 import { Account } from "thirdweb/wallets";
-import { contract } from "./getContract";
+import { contract, nftContract } from "./getContract";
 import { fetchListingPlanFee, fetchListingPlanInfo } from "./getPlatformInfo";
 import { approve, isERC721 } from "thirdweb/extensions/erc721";
 import {  isERC1155, setApprovalForAll } from "thirdweb/extensions/erc1155";
-import { anvil } from "thirdweb/chains";
-import { client } from "../client";
 import { contractAddress, NATIVE_TOKEN } from "./constant";
 import { toWei } from "thirdweb/utils";
 
@@ -55,11 +52,7 @@ export const createListing = async (
       fee = undefined
     }
 
-   const tokenContract = getContract({
-  address: assetContract,
-  chain: anvil,
-  client
-    });
+   const tokenContract = nftContract(assetContract)
 
     const erc721 = await isERC721({
       contract: tokenContract

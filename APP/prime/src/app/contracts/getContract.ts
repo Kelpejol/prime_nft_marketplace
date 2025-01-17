@@ -4,6 +4,15 @@ import { contractAddress } from "./constant";
 import { client } from "../client";
 
 
+export const nftContract = (contractAddress: string) => {
+  return getContract({
+    address: contractAddress,
+    chain: anvil,
+    client,
+  })
+}
+
+
 export const contract = getContract({
   address: contractAddress,
   chain: anvil,

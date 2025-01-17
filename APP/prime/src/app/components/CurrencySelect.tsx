@@ -2,6 +2,8 @@
 import { useCurrencyInfo } from "@/app/hooks/useCurrencyInfo";
 import Image from "next/image";
 import Select from "react-select";
+import {useMemo} from "react"
+import {NATIVE_TOKEN} from "../contracts/constant"
 
 export type CurrencySelectValue = {
   symbol: string;
@@ -22,15 +24,24 @@ interface CurrencySelectProps {
 export default function CurrencySelect({value, onChange}: CurrencySelectProps) {
   const { isLoading, error, currency } = useCurrencyInfo();
 
+  const formattedCurrency = useMemo(() => {
+    return currency.map(item => 
+      item.address === "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0" 
+        ? { ...item, address: NATIVE_TOKEN } 
+        : item
+    );
+  }, [currency]);
+
 
 
   return (
     <div className="">
       <Select
+      required
         placeholder="Currency"
         isClearable
         isLoading={isLoading}
-        options={currency}
+        options={formattedCurrency}
         value={value}
        onChange={onChange}
         formatOptionLabel={(option) => (

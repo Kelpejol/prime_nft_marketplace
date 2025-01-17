@@ -6,6 +6,10 @@ import {useWindowWidth} from '@react-hook/window-size'
 import {client} from "../client"
 import { anvil } from "thirdweb/chains";
 import { useCallback } from "react";
+import  { generatePayload, isLoggedIn, login } from "../actions/login";
+import { useActiveAccount } from "thirdweb/react";
+import { logout } from "../actions/logout";
+ 
 
 interface ConnectWalletProps {
   size: 'primary' | 'secondary' | 'tertiary',
@@ -23,10 +27,13 @@ const wallets = [
 export default function ConnectWallet({size, color, onClick}: ConnectWalletProps) {
  const width = useWindowWidth();
   const switchChain = useSwitchActiveWalletChain();
+  const activeAccount = useActiveAccount();
 
-  const handleConnect = useCallback(() => {
+
+  const handleConnect = useCallback(async() => {
    switchChain(anvil);
-   onClick && onClick();
+    onClick && onClick();
+   
   }, [onClick, switchChain])
   
   const getButtonWidth = (size : string) => {
@@ -124,8 +131,44 @@ export default function ConnectWallet({size, color, onClick}: ConnectWalletProps
       minWidth: "96px",
     },
   }}
+    signInButton={{
+    style: {
+      color: "black",
+      width: getButtonWidth(size),
+      height: getButtonHeight(size),
+      background: `${color == 'secondary' ? "white" : color == "primary" ? '#f5f5f5' : 'white'}`,
+      fontWeight: "600",
+      fontSize: getFontSize(size),
+      padding: `${size == 'tertiary' && "12px 16px"}0 5px`,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "9px",
+      minWidth: "96px",
+    },
+  }}
   client={client}
   wallets={wallets}
+   auth={{
+    isLoggedIn: async (address) => {
+      const authResult = await isLoggedIn(address);
+      if (!authResult){
+         return false;
+      }
+          return true;
+    },
+    doLogin: async (params) => {
+      console.log("logging in!");
+      await login(params);
+    },
+    getLoginPayload: async ({ address }) =>
+     await generatePayload({ address }),
+    doLogout: async () => {
+      console.log("logging out!");
+      await logout();
+    },
+  }}
   connectModal={{
     size: "compact",
     title: "Connect wallet",
@@ -143,6 +186,6 @@ export default function ConnectWallet({size, color, onClick}: ConnectWalletProps
       minWidth: "96px",
     },
   }}
-   onConnect={(wallet) => handleConnect}
+   onConnect={ handleConnect}
 />
 )}
